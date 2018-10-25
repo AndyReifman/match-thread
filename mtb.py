@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2.7
 # -*- coding: utf-8 -*-
 
 import praw,urllib2,cookielib,re,logging,logging.handlers,datetime,requests,requests.auth,sys,json,unicodedata
@@ -48,7 +48,7 @@ timewhitelist = {'matchthreaddertest': ['spawnofyanni'],
 				 'coyssandbox': ['wardamnspurs']}
 
 # markup constants
-goal=0;pgoal=1;ogoal=2;mpen=3;yel=4;syel=5;red=6;subst=7;subo=8;subi=9;strms=10;lines=11;evnts=12
+goal=0;pgoal=1;ogoal=1;mpen=3;yel=5;syel=5;red=6;subst=7;subo=12;subi=11;strms=10;lines=9;evnts=2
 
 def getTimestamp():
 	dt = str(datetime.datetime.now().month) + '/' + str(datetime.datetime.now().day) + ' '
@@ -140,6 +140,7 @@ def getRelatedSubreddits():
 	subs.append(u'soccerdev')
 	subs.append(u'whufc')
 	subs.append(u'coyssandbox')
+	subs.append(u'Eabryt')
 	subs = [x.lower() for x in subs]
 	return subs
 	
@@ -562,7 +563,7 @@ def createNewThread(team1,team2,reqr,sub):
 		# don't create a thread more than 5 minutes before kickoff
 		if sub.lower() not in timewhitelist or sub.lower() in timewhitelist and reqr.lower() not in timewhitelist[sub.lower()]:
 			hour_i, min_i, now = getTimes(ko_time)
-			now_f = now + datetime.timedelta(hours = 5, minutes = 5)
+			now_f = now + datetime.timedelta(minutes = 10)
 			if ko_day == '':
 				return 1,''
 			if now_f.day < int(ko_day):
@@ -615,6 +616,8 @@ def createNewThread(team1,team2,reqr,sub):
 
 		body += '**Venue:** ' + venue + '\n\n'
 		body += '[Auto-refreshing reddit comments link](' + redditstream + ')\n\n---------\n\n'
+                body += '[Follow us on Twitter](https://twitter.com/rslashgunners)\n\n'
+		body += '[Join us on Discord](https://discord.gg/t4wcMrP)\n\n---------\n\n'
 
 		body += markup[lines] + ' ' 
 		body = writeLineUps(sub,body,t1,t1id,t2,t2id,team1Start,team1Sub,team2Start,team2Sub)
@@ -644,6 +647,7 @@ def createMatchInfo(team1,team2):
 		markup = loadMarkup('soccer')
 
 		body = '#**' + status + ": " + t1 + ' vs ' + t2 + '**\n\n'
+
 		body += '**Venue:** ' + venue + '\n\n--------\n\n'
 		body += markup[lines] + ' ' 
 		body = writeLineUps('soccer',body,t1,t1id,t2,t2id,team1Start,team1Sub,team2Start,team2Sub)
