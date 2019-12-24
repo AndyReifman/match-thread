@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
+import pmt
 import praw,urllib,http.cookiejar,re,logging,logging.handlers,datetime,requests,requests.auth,sys,json,unicodedata,os
 from praw.models import Message
 from collections import Counter
@@ -1030,7 +1031,7 @@ def updateThreads():
         activeThreads.remove(getRid)
         logger.info("Active threads: %i - removed %s vs %s (/r/%s)", len(activeThreads), getRid[1], getRid[2], getRid[5])
         print(getTimestamp() + "Active threads: " + str(len(activeThreads)) + " - removed " + getRid[1] + " vs " + getRid[2] + " (/r/" + getRid[5] + ")")
-        os.system('sleep 60 && python lockPosts.py')
+        pmt.main(matchID)
         saveData()
 
 logger = logging.getLogger('a')
