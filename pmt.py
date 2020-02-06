@@ -23,6 +23,16 @@ spriteSubs = ['soccer','Gunners','fcbayern','soccerdev','mls']
 goal=0;pgoal=1;ogoal=1;mpen=3;yel=5;syel=5;red=6;subst=7;subo=12;subi=11;strms=10;lines=9;evnts=2
 events = ['Sub','Goal','Yellow','Red']
 
+logger = logging.getLogger('a')
+logger.setLevel(logging.INFO)
+logfilename = 'log.log'
+handler = logging.handlers.RotatingFileHandler(logfilename,maxBytes = 50000,backupCount = 5)
+handler.setLevel(logging.INFO)
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+logger.warning("[POST MATCH THREAD: STARTUP]")
+
 def getTimestamp():
     dt = str(datetime.datetime.now().month) + '/' + str(datetime.datetime.now().day) + ' '
     hr = str(datetime.datetime.now().hour) if len(str(datetime.datetime.now().hour)) > 1 else '0' + str(datetime.datetime.now().hour)
@@ -244,7 +254,7 @@ def getMatchInfo(matchID):
     print( "complete.")
     return (team1fix,t1id,team2fix,t2id,team1Start,team1Sub,team2Start,team2Sub,venue,ko_day,ko_time,status,comp)
 
-def submitThread(sub,title,body):
+def submitThread(sub,title,body,r):
     print(getTimestamp() + "Submitting " + title + "...",)
     try:
         thread = r.subreddit(sub).submit(title,selftext=body,send_replies=False)
@@ -393,7 +403,7 @@ def grabEvents(matchID,sub):
 
 
 
-def updateScore(matchId, t1, t2, sub):
+def updateScore(matchID, t1, t2, sub):
     try:
         lineAddress = "http://www.espnfc.us/match?gameId=" + matchID
         lineWebsite = requests.get(lineAddress, timeout=15)
@@ -463,7 +473,7 @@ def updateScore(matchId, t1, t2, sub):
         return '#**--**\n\n'
 
 
-def createThread(matchID):
+def createThread(matchID,r):
     t1, t1id, t2, t2id, team1Start, team1Sub, team2Start, team2Sub, venue, ko_day, ko_time, status, comp = getMatchInfo(matchID)
     scores, score = updateScore(matchID,t1,t2,sub)
     title = 'Post Match Thread: ' + t1 + ' ' + scores[0] + ' - ' + scores[1] + ' ' + t2
@@ -481,24 +491,15 @@ def createThread(matchID):
     events = grabEvents(matchID,sub)
     body += '\n\n' + events
 
-    result,thread = submitThread(sub,title,body)
+    result,thread = submitThread(sub,title,body,r)
 
 
 
 
 def main(matchID):
-    logger = logging.getLogger('a')
-    logger.setLevel(logging.INFO)
-    logfilename = 'log.log'
-    handler = logging.handlers.RotatingFileHandler(logfilename,maxBytes = 50000,backupCount = 5)
-    handler.setLevel(logging.INFO)
-    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
-    logger.warning("[STARTUP]")
     print(getTimestamp() + "[STARTUP]")
-
     r,admin,username,password,subreddit,user_agent,id,secret,redirect = setup()
-    createThread(matchID)
+    createThread(matchID,r)
     os.system('python lockPosts.py')
     return
+
