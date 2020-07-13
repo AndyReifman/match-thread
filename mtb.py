@@ -190,37 +190,48 @@ def guessRightMatch(possibles):
     return guess
     
 def findMatchSite(team1, team2):
-    # search for each word in each team name in the fixture list, return most frequent result
-    print(getTimestamp() + "Finding ESPN site for " + team1 + " vs " + team2 + "...",)
+# search for each word in each team name in the fixture list, return most frequent result
+    print(getTimestamp()+"Finding ESPN site for "+team1+" vs "+team2+"...")
     try:
-        unidecode(team1)
-        unidecode(team2)
         t1 = team1.split()
         t2 = team2.split()
         linkList = []
-        fixAddress = "http://www.espnfc.us/scores"
+        fixAddress = "http://www.espn.com/soccer/scoreboard"
         fixWebsite = requests.get(fixAddress, timeout=15)
         fix_html = fixWebsite.text
-        matches = fix_html.split('<div id="score-leagues">')[1]
-        names = re.findall('<div class="team-names">(.*?)Game Details', matches, re.DOTALL)
+        matches = fix_html.split('window.espn.scoreboardData')[1]
+        matches = matches.split('<body class="scoreboard')[0]
+        names = matches.split('"text":"Statistics"')
+        del names[-1]
         for match in names:
-            matchID = re.findall('gameId=(.*?)"', match, re.DOTALL)[0]
-            ESPNteams = re.findall('<div class="team-name">.*?<span>.*?>(.*?)</span>', match, re.DOTALL)
-            for word in t1:
-                if remove_accents(ESPNteams[0].lower()).find(remove_accents(word.lower())) != -1:
-                    linkList.append(matchID)
-                if remove_accents(ESPNteams[1].lower()).find(remove_accents(word.lower())) != -1:
-                    linkList.append(matchID)
-            for word in t2:
-                if remove_accents(ESPNteams[0].lower()).find(remove_accents(word.lower())) != -1:
-                    linkList.append(matchID)
-                if remove_accents(ESPNteams[1].lower()).find(remove_accents(word.lower())) != -1:
-                    linkList.append(matchID)        
+            check = True
+            matchID = re.findall('"homeAway":.*?"href":".*?gameId=(.*?)",', match, re.DOTALL)[0][0:6]
+            homeTeam = re.findall('"homeAway":"home".*?"team":{.*?"alternateColor".*?"displayName":"(.*?)"', match, re.DOTALL)
+            if len(homeTeam) > 0:
+                homeTeam = homeTeam[0]
+            else:
+                check = False
+            awayTeam = re.findall('"homeAway":"away".*?"team":{.*?"alternateColor".*?"displayName":"(.*?)"', match, re.DOTALL)
+            if len(awayTeam) > 0:
+                awayTeam = awayTeam[0]
+            else:
+                check = False
+            if check:
+                for word in t1:
+                    if remove_accents(homeTeam.lower()).find(remove_accents(word.lower())) != -1:
+                        linkList.append(matchID)
+                    if remove_accents(awayTeam.lower()).find(remove_accents(word.lower())) != -1:
+                        linkList.append(matchID)
+                for word in t2:
+                    if remove_accents(homeTeam.lower()).find(remove_accents(word.lower())) != -1:
+                        linkList.append(matchID)
+                    if remove_accents(awayTeam.lower()).find(remove_accents(word.lower())) != -1:
+                        linkList.append(matchID)		
         counts = Counter(linkList)
         if counts.most_common(1) != []:
             freqs = groupby(counts.most_common(), lambda x:x[1])
             possibles = []
-            #for val,ct in freqs.next()[1]:
+            #freqs.next() is no longer valid in Python3 so we use next(freqs)
             for val,ct in next(freqs)[1]:
                 possibles.append(val)
                 if len(possibles) > 1:
@@ -233,7 +244,7 @@ def findMatchSite(team1, team2):
             print("complete.")
             return 'no match'
     except requests.exceptions.Timeout:
-        print("goal.com access timeout")
+        print("ESPN access timeout")
         return 'no match'
 
 def getTeamIDs(matchID):
