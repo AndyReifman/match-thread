@@ -1,3 +1,4 @@
+__pycache__
 login.txt
 active_threads.txt
 log.log
@@ -14,3 +15,13 @@ mls.txt
 soccer.txt
 mtb.py - flush messages.lnk
 mtb.py - reset bot.lnk
+2fakey.txt
+Dockerfile
+back.mtb.py
+eablogin.txt
+eabryt.txt
+gunners.txt
+pmt.pyc
+reddit.txt
+requirements.txt
+.gitignore
