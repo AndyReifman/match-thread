@@ -24,3 +24,21 @@ In this file is the code used to run MatchThreadder - as long as you change the 
 If/when the bot runs into any HTTP errors (reddit is down, can't access goal.com, etc) it will sleep for 2 minutes and try again.
 
 If a message is titled 'Match Thread', the bot will attempt to find info about the match and then post a match thread to the specified subreddit. If a message is titled 'Match Info', the bot will attempt to find info about the match and then reply to the user with a template for the match thread so the user can post and update the thread themselves.
+
+pmt.py
+-----
+
+When a Match finishes and the match is removed from active matches it also makes a call to create a Post Match Thread. This will use the information in the `login.txt` file to know which subreddit to post to, but otherwise should work for any match.
+
+Running in Docker
+-----
+
+It's pretty simple to dockerize the Match Thread Bot. You'll want a Dockerfile that's running `python3.6+`, install the required python libraries and run. For example
+```
+FROM python:3.6
+ADD . /
+RUN pip install --trusted-host pypi.python.org -r /requirements.txt
+WORKDIR /
+
+CMD ["python","./mtb.py"]
+```
