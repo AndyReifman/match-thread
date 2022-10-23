@@ -20,7 +20,8 @@ sub = 'gunners'
 spriteSubs = ['soccer','Gunners','fcbayern','soccerdev','mls']
 
 # markup constants
-goal=0;pgoal=1;ogoal=1;mpen=3;yel=5;syel=5;red=6;subst=7;subo=12;subi=11;strms=10;lines=9;evnts=2
+#goal=0;pgoal=1;ogoal=1;mpen=3;yel=5;syel=5;red=6;subst=7;subo=12;subi=11;strms=10;lines=9;evnts=2
+goal=0;pgoal=1;ogoal=1;mpen=1;yel=5;syel=5;red=6;subst=7;subo=8;subi=9;strms=10;lines=10;evnts=2
 events = ['Sub','Goal','Yellow','Red']
 
 logger = logging.getLogger('a')
