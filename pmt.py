@@ -83,7 +83,8 @@ def getTeamIDs(matchID):
         return '',''
 
 def getStatus(matchID):
-    lineAddress = "http://www.espnfc.us/match?gameId=" + matchID
+    #lineAddress = "http://www.espnfc.us/match?gameId=" + matchID
+    lineAddress = "http://www.espnfc.us/commentary?gameId=" + matchID
     lineWebsite = requests.get(lineAddress, timeout=15)
     line_html = lineWebsite.text
     if lineWebsite.status_code == 200:
@@ -211,6 +212,7 @@ def getLineUps(matchID):
 
 def getMatchInfo(matchID):
     lineAddress = "http://www.espnfc.us/match?gameId=" + matchID
+    lineAddress = "http://www.espnfc.us/commentary?gameId=" + matchID
     print(getTimestamp() + "Finding ESPNFC info from " + lineAddress + "...",)
     lineWebsite = requests.get(lineAddress, timeout=15)
     line_html = lineWebsite.text
@@ -406,7 +408,8 @@ def grabEvents(matchID,sub):
 
 def updateScore(matchID, t1, t2, sub):
     try:
-        lineAddress = "http://www.espnfc.us/match?gameId=" + matchID
+        #lineAddress = "http://www.espnfc.us/match?gameId=" + matchID
+        lineAddress = "http://www.espnfc.us/commentary?gameId=" + matchID
         lineWebsite = requests.get(lineAddress, timeout=15)
         line_html = lineWebsite.text
         leftScore = re.findall('data-stat="score">(.*?)<',line_html,re.DOTALL)[0].strip()
