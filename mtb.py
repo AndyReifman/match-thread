@@ -159,7 +159,8 @@ def getBotStatus():
     
 # get current match time/status
 def getStatus(matchID):
-    lineAddress = "http://www.espnfc.us/match?gameId=" + matchID
+    #lineAddress = "http://www.espnfc.us/match?gameId=" + matchID
+    lineAddress = "http://www.espnfc.us/commentary?gameId=" + matchID
     lineWebsite = requests.get(lineAddress, timeout=15)
     line_html = lineWebsite.text
     if lineWebsite.status_code == 200:
@@ -250,7 +251,8 @@ def findMatchSite(team1, team2):
 
 def getTeamIDs(matchID):
     try:
-        lineAddress = "http://www.espnfc.us/match?gameId=" + matchID    
+        #lineAddress = "http://www.espnfc.us/match?gameId=" + matchID    
+        lineAddress = "http://www.espnfc.us/commentary?gameId=" + matchID    
         lineWebsite = requests.get(lineAddress, timeout=15)
         line_html = lineWebsite.text
         
@@ -387,7 +389,8 @@ def getLineUps(matchID):
 
 # get venue, ref, lineups, etc from ESPN    
 def getMatchInfo(matchID):
-    lineAddress = "http://www.espnfc.us/match?gameId=" + matchID
+    #lineAddress = "http://www.espnfc.us/match?gameId=" + matchID
+    lineAddress = "http://www.espnfc.us/commentary?gameId=" + matchID
     print(getTimestamp() + "Finding ESPNFC info from " + lineAddress + "...",)
     lineWebsite = requests.get(lineAddress, timeout=15)
     line_html = lineWebsite.text
@@ -655,23 +658,23 @@ def createNewThread(team1,team2,reqr,sub):
                 logger.info("Denied %s vs %s request - match appears to be finished", t1, t2)
                 return 3,''
         
-        # don't create a thread more than 5 minutes before kickoff
+        # don't create a thread more than 10 minutes before kickoff
         if sub.lower() not in timewhitelist or sub.lower() in timewhitelist and reqr.lower() not in timewhitelist[sub.lower()]:
             hour_i, min_i, now = getTimes(ko_time)
             now_f = now + datetime.timedelta(minutes = 10)
             if ko_day == '':
                 return 1,''
             if now_f.day < int(ko_day):
-                print(getTimestamp() + "Denied " + t1 + " vs " + t2 + " request - more than 5 minutes to kickoff")
-                logger.info("Denied %s vs %s request - more than 5 minutes to kickoff", t1, t2)
+                print(getTimestamp() + "Denied " + t1 + " vs " + t2 + " request - more than 10 minutes to kickoff")
+                logger.info("Denied %s vs %s request - more than 10 minutes to kickoff", t1, t2)
                 return 2,''
             if now_f.hour < hour_i:
-                print(getTimestamp() + "Denied " + t1 + " vs " + t2 + " request - more than 5 minutes to kickoff")
-                logger.info("Denied %s vs %s request - more than 5 minutes to kickoff", t1, t2)
+                print(getTimestamp() + "Denied " + t1 + " vs " + t2 + " request - more than 10 minutes to kickoff")
+                logger.info("Denied %s vs %s request - more than 10 minutes to kickoff", t1, t2)
                 return 2,''
             if (now_f.hour == hour_i) and (now_f.minute < min_i):
-                print(getTimestamp() + "Denied " + t1 + " vs " + t2 + " request - more than 5 minutes to kickoff")
-                logger.info("Denied %s vs %s request - more than 5 minutes to kickoff", t1, t2)
+                print(getTimestamp() + "Denied " + t1 + " vs " + t2 + " request - more than 10 minutes to kickoff")
+                logger.info("Denied %s vs %s request - more than 10 minutes to kickoff", t1, t2)
                 return 2,''
 
         title = 'Match Thread: ' + t1 + ' vs ' + t2
@@ -719,7 +722,7 @@ def createNewThread(team1,team2,reqr,sub):
         
         #[^[Request ^a ^match ^thread]](http://www.reddit.com/message/compose/?to=MatchThreadder&subject=Match%20Thread&message=Team%20vs%20Team) ^| [^[Request ^a ^thread ^template]](http://www.reddit.com/message/compose/?to=MatchThreadder&subject=Match%20Info&message=Team%20vs%20Team) ^| [^[Current ^status ^/ ^bot ^info]](http://www.reddit.com/r/soccer/comments/22ah8i/introducing_matchthreadder_a_bot_to_set_up_match/)"
         
-        body += '\n\n------------\n\n' + markup[evnts] + ' **MATCH EVENTS** | *via [ESPNFC](http://www.espnfc.us/match?gameId=' + matchID + ')*\n\n'
+        body += '\n\n------------\n\n' + markup[evnts] + ' **MATCH EVENTS** | *via [ESPNFC](http://www.espnfc.us/commentary?gameId=' + matchID + ')*\n\n'
         
         if botstat != 'green':
             body += '*' + statmsg + '*\n\n'
@@ -850,7 +853,7 @@ def checkAndCreate():
                 if threadStatus == 1: # not found
                     msg.reply("Sorry, I couldn't find info for that match. If the match you requested appears on [this page](http://www.espnfc.us/scores), please let /u/spawnofyanni know about this error.\n\n-------------------------\n\n*Why not run your own match thread? [Look here](https://www.reddit.com/r/soccer/wiki/matchthreads) for templates, tips, and example match threads from the past if you're not sure how.*\n\n*You could also check out these match thread creation tools from /u/afito and /u/Mamu7490:*\n\n*[RES Templates](https://www.reddit.com/r/soccer/comments/3ndd7b/matchthreads_for_beginners_the_easy_way/)*\n\n*[MTmate](https://www.reddit.com/r/soccer/comments/3huyut/release_v09_of_mtmate_matchthread_generator/)*")
                 if threadStatus == 2: # before kickoff
-                    msg.reply("Please wait until at least 5 minutes to kickoff to send me a thread request, just in case someone does end up making one themselves. Thanks!\n\n-------------------------\n\n*Why not run your own match thread? [Look here](https://www.reddit.com/r/soccer/wiki/matchthreads) for templates, tips, and example match threads from the past if you're not sure how.*\n\n*You could also check out these match thread creation tools from /u/afito and /u/Mamu7490:*\n\n*[RES Templates](https://www.reddit.com/r/soccer/comments/3ndd7b/matchthreads_for_beginners_the_easy_way/)*\n\n*[MTmate](https://www.reddit.com/r/soccer/comments/3huyut/release_v09_of_mtmate_matchthread_generator/)*")
+                    msg.reply("Please wait until at least 10 minutes to kickoff to send me a thread request, just in case someone does end up making one themselves. Thanks!\n\n-------------------------\n\n*Why not run your own match thread? [Look here](https://www.reddit.com/r/soccer/wiki/matchthreads) for templates, tips, and example match threads from the past if you're not sure how.*\n\n*You could also check out these match thread creation tools from /u/afito and /u/Mamu7490:*\n\n*[RES Templates](https://www.reddit.com/r/soccer/comments/3ndd7b/matchthreads_for_beginners_the_easy_way/)*\n\n*[MTmate](https://www.reddit.com/r/soccer/comments/3huyut/release_v09_of_mtmate_matchthread_generator/)*")
                 if threadStatus == 3: # after full time - probably found the wrong match
                     msg.reply("Sorry, I couldn't find a currently live match with those teams - are you sure the match has started (and hasn't finished)? If you think this is a mistake, it probably means I can't find that match.\n\n-------------------------\n\n*Why not run your own match thread? [Look here](https://www.reddit.com/r/soccer/wiki/matchthreads) for templates, tips, and example match threads from the past if you're not sure how.*\n\n*You could also check out these match thread creation tools from /u/afito and /u/Mamu7490:*\n\n*[RES Templates](https://www.reddit.com/r/soccer/comments/3ndd7b/matchthreads_for_beginners_the_easy_way/)*\n\n*[MTmate](https://www.reddit.com/r/soccer/comments/3huyut/release_v09_of_mtmate_matchthread_generator/)*")
                 if threadStatus == 4: # thread already exists
@@ -903,7 +906,8 @@ def checkAndCreate():
                 
 def getExtraInfo(matchID):
     try:
-        lineAddress = "http://www.espnfc.us/match?gameId=" + matchID
+        #lineAddress = "http://www.espnfc.us/match?gameId=" + matchID
+        lineAddress = "http://www.espnfc.us/commentary?gameId=" + matchID
         lineWebsite = requests.get(lineAddress, timeout=15)
         line_html = lineWebsite.text
         info = re.findall('data-stat="note">(.*?)<',line_html,re.DOTALL)
@@ -917,7 +921,8 @@ def getExtraInfo(matchID):
 # update score, scorers
 def updateScore(matchID, t1, t2, sub):
     try:
-        lineAddress = "http://www.espnfc.us/match?gameId=" + matchID
+        #lineAddress = "http://www.espnfc.us/match?gameId=" + matchID
+        lineAddress = "http://www.espnfc.us/commentary?gameId=" + matchID
         lineWebsite = requests.get(lineAddress, timeout=15)
         line_html = lineWebsite.text
         leftScore = re.findall('data-stat="score">(.*?)<',line_html,re.DOTALL)[0].strip()
@@ -1014,7 +1019,7 @@ def updateThreads():
         
         t1id,t2id = getTeamIDs(matchID)
         newbody = writeLineUps(sub,bodyTilThen,team1,t1id,team2,t2id,team1Start,team1Sub,team2Start,team2Sub)
-        newbody += '\n\n------------\n\n' + markup[evnts] + ' **MATCH EVENTS** | *via [ESPNFC](http://www.espnfc.us/match?gameId=' + matchID + ')*\n\n'
+        newbody += '\n\n------------\n\n' + markup[evnts] + ' **MATCH EVENTS** | *via [ESPNFC](http://www.espnfc.us/commentary?gameId=' + matchID + ')*\n\n'
         
         botstat,statmsg = getBotStatus()
         if botstat != 'green':
