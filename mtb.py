@@ -207,7 +207,11 @@ def findMatchSite(team1, team2):
         del names[-1]
         for match in names:
             check = True
-            matchID = re.findall('"homeAway":.*?"href":".*?gameId=(.*?)",', match, re.DOTALL)[0][0:6]
+            try:
+                matchID = re.findall('"homeAway":.*?"href":".*?gameId=(.*?)",', match, re.DOTALL)[0][0:6]
+            except IndexError:
+                matchID = re.findall('"homeAway":.*?"href":".*?gameId/(\d+)",', match, re.DOTALL)[0][0:6]
+
             homeTeam = re.findall('"homeAway":"home".*?"team":{.*?"alternateColor".*?"displayName":"(.*?)"', match, re.DOTALL)
             if len(homeTeam) > 0:
                 homeTeam = homeTeam[0]
@@ -528,7 +532,8 @@ def writeLineUps(sub,body,t1,t1id,t2,t2id,team1Start,team1Sub,team2Start,team2Su
 
 def grabEvents(matchID,sub):
     markup = loadMarkup(sub)
-    lineAddress = "http://www.espnfc.us/commentary?gameId=" + matchID
+    #lineAddress = "http://www.espnfc.us/commentary?gameId=" + matchID
+    lineAddress = "https://www.espn.com/soccer/commentary?gameId=" + matchID
 #    print getTimestamp() + "Grabbing events from " + lineAddress + "...",
     lineWebsite = requests.get(lineAddress, timeout=15)
     line_html = lineWebsite.text
