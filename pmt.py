@@ -1,9 +1,15 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-import praw,urllib,http.cookiejar,re,logging,logging.handlers,datetime,requests,requests.auth,sys,json,unicodedata,os
-from praw.models import Message
 from time import sleep
+
+import datetime
+import logging.handlers
+import os
+import praw
+import re
+import requests
+import requests.auth
 from unidecode import unidecode
 
 # browser header (to avoid 405 error)
