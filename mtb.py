@@ -124,15 +124,15 @@ def saveData():
 
 # read saved activeThreads data
 def readData():
-    f = open('active_threads.txt', 'a+')
+    f = open('active_threads.txt', 'r')
     # s = f.read().decode('utf8')
     s = f.read()
     info = s.split('&&&&')
     if info[0] != '':
         for d in info:
             [matchID, t1, t2, thread_id, reqr, sub] = d.split('####')
-            matchID = matchID.encode(
-                'utf8')  # get rid of weird character at start - got to be a better way to do this...
+            # matchID = matchID.encode(
+            #     'utf8')  # get rid of weird character at start - got to be a better way to do this...
             data = matchID, t1, t2, thread_id, reqr, sub
             activeThreads.append(data)
             logger.info("Active threads: %i - added %s vs %s (/r/%s)", len(activeThreads), t1, t2, sub)
@@ -205,7 +205,14 @@ def getStatus(matchID):
     line_html = lineWebsite.text
     soup = BeautifulSoup(line_html, "lxml")
     # Maybe works: soup.find("div", {"class", "ScoreCell__Time Gamestrip__Time h9 clr-negative"}).text
-    return soup.findAll("div",{"class","MatchCommentary__Comment__Timestamp"})[:1][0].text if soup.findAll("div",{"class","MatchCommentary__Comment__Timestamp"}) else 'v'
+    if lineWebsite.status_code == 200:
+        status = re.findall('"det":"(.*?)"', line_html)[0]
+        if ':' in status:
+            return 'v'
+        else:
+            return status
+
+    # return soup.findAll("div",{"class","MatchCommentary__Comment__Timestamp"})[:1][0].text if soup.findAll("div",{"class","MatchCommentary__Comment__Timestamp"}) else 'v'
 
     # if lineWebsite.status_code == 200:
     #     status = re.findall('<span class="game-time".*?>(.*?)<', line_html, re.DOTALL)
@@ -258,7 +265,10 @@ def findMatchSite(team1, team2):
             matches = comp.findAll("section", {"class", "Scoreboard bg-clr-white flex flex-auto justify-between"})
             for match in matches:
                 check = True
-                matchID = match.find("a", {"class", "AnchorLink Button Button--sm Button--anchorLink Button--alt mb4 w-100 mr2"})["href"].split("/")[-1]
+                matchID = \
+                match.find("a", {"class", "AnchorLink Button Button--sm Button--anchorLink Button--alt mb4 w-100 mr2"})[
+                    "href"].split("/")[-1] if match.find("a", {"class",
+                                                               "AnchorLink Button Button--sm Button--anchorLink Button--alt mb4 w-100 mr2"}) else ''
                 homeTeam, awayTeam = list(
                     map(lambda item: item.text, match.findAll("div", {"class", "ScoreCell__TeamName"})))
                 if len(homeTeam) < 0:
@@ -355,7 +365,7 @@ def getTeamIDs(matchID):
         lineWebsite = requests.get(lineAddress, timeout=15, headers={'User-Agent': 'Custom'})
         line_html = lineWebsite.text
         soup = BeautifulSoup(line_html, "lxml")
-        return list(map(lambda item: item["href"].split("/")[-2], soup.findAll("a",{"class", "AnchorLink truncate"})))
+        return list(map(lambda item: item["href"].split("/")[-2], soup.findAll("a", {"class", "AnchorLink truncate"})))
 
         # teamIDs = re.findall('<div class="team-info">(.*?)</div>', line_html, re.DOTALL)
         # if teamIDs != []:
@@ -375,11 +385,13 @@ def getTeamIDs(matchID):
     except requests.exceptions.Timeout:
         return '', ''
 
+
 def getPlayerInfo(player):
-    playerName = player.find("a",{"class", "AnchorLink SoccerLineUpPlayer__Header__Name"}).text if player.find("a",{"class", "AnchorLink SoccerLineUpPlayer__Header__Name"}) else player.text
+    playerName = player.find("a", {"class", "AnchorLink SoccerLineUpPlayer__Header__Name"}).text if player.find("a", {
+        "class", "AnchorLink SoccerLineUpPlayer__Header__Name"}) else player.text
     tags = ''
-    #Need to check if the player has done anything remarkable
-    for tag in player.findAll("div",{"class","SoccerLineUpPlayer__Header__IconWrapper"}):
+    # Need to check if the player has done anything remarkable
+    for tag in player.findAll("div", {"class", "SoccerLineUpPlayer__Header__IconWrapper"}):
 
         if tag.find("svg"):
             tags += '!sub ' if 'Substitution' in tag.find("svg")["aria-label"] else ''
@@ -392,16 +404,18 @@ def getLineUps(matchID):
     try:
         # try to find line-ups
         # lineAddress = "http://www.espnfc.us/lineups?gameId=" + matchID
-        lineAddress = "http://www.espn.com/soccer/lineups/_/gameId/"+matchID
+        lineAddress = "http://www.espn.com/soccer/lineups/_/gameId/" + matchID
         lineWebsite = requests.get(lineAddress, timeout=15, headers={'User-Agent': 'Custom'})
         line_html = lineWebsite.text
-        soup = BeautifulSoup(line_html,"lxml")
-        team1Starters, team2Starters = list(map(lambda item: item.find("tbody"), soup.findAll("div", {"class", "ResponsiveTable LineUps__PlayersTable"})))
-        team1Subs, team2Subs = list(map(lambda item: item.find("tbody"), soup.findAll("div", {"class", "ResponsiveTable LineUps__SubstitutesTable"})))
+        soup = BeautifulSoup(line_html, "lxml")
+        team1Starters, team2Starters = list(map(lambda item: item.find("tbody"), soup.findAll("div", {"class",
+                                                                                                      "ResponsiveTable LineUps__PlayersTable"})))
+        team1Subs, team2Subs = list(map(lambda item: item.find("tbody"),
+                                        soup.findAll("div", {"class", "ResponsiveTable LineUps__SubstitutesTable"})))
 
         team1Start = []
         for row in team1Starters.findAll("tr"):
-            players = row.findAll("div",{"class","SoccerLineUpPlayer"})
+            players = row.findAll("div", {"class", "SoccerLineUpPlayer"})
             # Check if the player was subbed on/off
             if len(players) != 1:
                 # player1 = players[0].find("a",{"class", "AnchorLink SoccerLineUpPlayer__Header__Name"})
@@ -411,11 +425,11 @@ def getLineUps(matchID):
                 player2Text = '!sub ' + getPlayerInfo(players[1])
                 # player2Text += "!sub" + player2
                 team1Start.append(player2Text)
-            player = getPlayerInfo(row.find("a",{"class", "AnchorLink SoccerLineUpPlayer__Header__Name"}))
+            player = getPlayerInfo(row.find("a", {"class", "AnchorLink SoccerLineUpPlayer__Header__Name"}))
             team1Start.append(player)
         team1Sub = []
         for row in team1Subs.findAll("tr"):
-            players = row.findAll("div",{"class","SoccerLineUpPlayer"})
+            players = row.findAll("div", {"class", "SoccerLineUpPlayer"})
             player = getPlayerInfo(row.find("a", {"class", "AnchorLink SoccerLineUpPlayer__Header__Name"}))
             team1Sub.append(player)
         team2Start = []
@@ -445,6 +459,20 @@ def getLineUps(matchID):
             team2Start = ["*Not available*"]
         if not team2Sub:
             team2Sub = ["*Not available*"]
+        return team1Start, team1Sub, team2Start, team2Sub
+    except IndexError:
+        logger.warning("[INDEX ERROR:]")
+        team1Start = ["*Not available*"]
+        team1Sub = ["*Not available*"]
+        team2Start = ["*Not available*"]
+        team2Sub = ["*Not available*"]
+        return team1Start, team1Sub, team2Start, team2Sub
+    except ValueError:  # Teams probably aren't announced yet.
+        logger.warning("[VALUE ERROR:]")
+        team1Start = ["*Not available*"]
+        team1Sub = ["*Not available*"]
+        team2Start = ["*Not available*"]
+        team2Sub = ["*Not available*"]
         return team1Start, team1Sub, team2Start, team2Sub
 
         # ### OLD Code
@@ -547,13 +575,6 @@ def getLineUps(matchID):
         #     team2Start = ["*Not available*"]
         #     team2Sub = ["*Not available*"]
         #     return team1Start, team1Sub, team2Start, team2Sub
-    except IndexError:
-        logger.warning("[INDEX ERROR:]")
-        team1Start = ["*Not available*"]
-        team1Sub = ["*Not available*"]
-        team2Start = ["*Not available*"]
-        team2Sub = ["*Not available*"]
-        return team1Start, team1Sub, team2Start, team2Sub
 
 
 # get venue, ref, lineups, etc from ESPN
@@ -571,20 +592,21 @@ def getMatchInfo(matchID):
 
     # get "fixed" versions of team names (ie team names from ESPNFC, not team names from match thread request)
 
-    team1, team2 = list(map(lambda item: item.text, soup.findAll("h2", {"class", "ScoreCell__TeamName ScoreCell__TeamName--displayName truncate db"})))
+    team1, team2 = list(map(lambda item: item.text, soup.findAll("h2", {"class",
+                                                                        "ScoreCell__TeamName ScoreCell__TeamName--displayName truncate db"})))
     t1id, t2id = getTeamIDs(matchID)
     status = getStatus(matchID)
-    ko_info = datetime.datetime.strptime(soup.find("div", {"class", "n8 GameInfo__Meta"}).find("span").text,"%I:%M %p, %B %d, %Y")
+    ko_info = datetime.datetime.strptime(soup.find("div", {"class", "n8 GameInfo__Meta"}).find("span").text,
+                                         "%I:%M %p, %B %d, %Y")
     ko_date, ko_day, ko_time = ko_info.date(), ko_info.day, ko_info.time()
-    venue = soup.find("div",{"class","n6 clr-gray-03 GameInfo__Location__Name--noImg"}).text or "?"
-    comp = soup.find("div",{"ScoreCell__GameNote di"}).text.split(" ", 1)[1].split(",", 1)[0] or ""
+    venue = soup.find("div", {"class", "n6 clr-gray-03 GameInfo__Location__Name--noImg"}).text or "?"
+    comp = soup.find("div", {"ScoreCell__GameNote di"}).text.split(" ", 1)[1].split(",", 1)[0] or ""
 
     team1Start, team1Sub, team2Start, team2Sub = getLineUps(matchID)
     print("complete.")
     return (
         team1, t1id, team2, t2id, team1Start, team1Sub, team2Start, team2Sub, venue, ko_day, ko_time, status,
         comp)
-
 
     #### OLD CODE We're replacing!!
     # team1fix = re.findall('<span class="long-name">(.*?)<', line_html, re.DOTALL)[0]
@@ -1157,7 +1179,10 @@ def updateScore(matchID, t1, t2, sub):
         lineWebsite = requests.get(lineAddress, timeout=15, headers={'User-Agent': 'Custom'})
         line_html = lineWebsite.text
         soup = BeautifulSoup(line_html, "lxml")
-        leftScore, rightScore = list(map(lambda item: item.text, soup.findAll("div",{"class","Gamestrip__ScoreContainer flex flex-column items-center justify-center relative"})))
+        try:
+            leftScore, rightScore = list(map(lambda item: item.text, soup.findAll("div", {"class","Gamestrip__ScoreContainer flex flex-column items-center justify-center relative"})))
+        except ValueError:  # Game has probably not started yet.
+            leftScore, rightScore
         info = getExtraInfo(matchID)
         status = getStatus(matchID)
         ESPNUpdating = True
@@ -1165,11 +1190,14 @@ def updateScore(matchID, t1, t2, sub):
             status = "0'"
             ESPNUpdating = False
 
-        leftInfo = re.findall('<div class="team-info players"(.*?)</div>', line_html, re.DOTALL)[0]
-        rightInfo = re.findall('<div class="team-info players"(.*?)</div>', line_html, re.DOTALL)[1]
+        #
+        # leftInfo = re.findall('<div class="team-info players"(.*?)</div>', line_html, re.DOTALL)[0]
+        # rightInfo = re.findall('<div class="team-info players"(.*?)</div>', line_html, re.DOTALL)[1]
+        #
+        # leftGoals = re.findall('data-event-type="goal"(.*?)</ul>', leftInfo, re.DOTALL)
+        # rightGoals = re.findall('data-event-type="goal"(.*?)</ul>', rightInfo, re.DOTALL)
 
-        leftGoals = re.findall('data-event-type="goal"(.*?)</ul>', leftInfo, re.DOTALL)
-        rightGoals = re.findall('data-event-type="goal"(.*?)</ul>', rightInfo, re.DOTALL)
+        leftGoals,rightGoals = soup.findAll("div",{"class", "SoccerPerformers__Competitor__Info"}) or [],[]
 
         if leftGoals != []:
             leftScorers = re.findall('<li>(.*?)</li', leftGoals[0], re.DOTALL)
@@ -1219,6 +1247,7 @@ def updateScore(matchID, t1, t2, sub):
         return text
     except requests.exceptions.Timeout:
         return '#**--**\n\n'
+
 
 
 # update all current threads            
