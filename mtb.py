@@ -1241,12 +1241,7 @@ def updateScore(matchID, t1, t2, sub):
 
         left = ''
         if leftScorers is not None:
-            left += "*" + t1 + " scorers: "
-            for scorer in leftScorers:
-                scorer = scorer[0:scorer.index('<')].strip(' \t\n\r') + ' ' + scorer[scorer.index('('):scorer.index(
-                    '/') - 1].strip(' \t\n\r')
-                left += scorer + ", "
-            left = left[0:-2] + "*"
+            left += f"*{t1} scorers: {leftScorers}*"
 
         right = ''
         if rightScorers is not None:
