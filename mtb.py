@@ -64,17 +64,18 @@ timewhitelist = {'matchthreaddertest': ['spawnofyanni'],
 # markup constants
 # goal=0;pgoal=1;ogoal=1;mpen=3;yel=5;syel=5;red=6;subst=7;subo=12;subi=11;strms=10;lines=9;evnts=2
 goal = 0
-pgoal = 1;
-ogoal = 1;
-mpen = 1;
-yel = 5;
-syel = 5;
-red = 6;
-subst = 7;
-subo = 8;
-subi = 9;
-strms = 10;
-lines = 10;
+pgoal = 1
+ogoal = 1
+mpen = 1
+yel = 5
+syel = 5
+red = 6
+subst = 7
+subo = 8
+subi = 9
+strms = 10
+lines = 10
+offs = 4
 evnts = 2
 events = ['Sub', 'Goal', 'Yellow', 'Red']
 
@@ -745,29 +746,41 @@ def writeLineUps(sub, body, t1, t1id, t2, t2id, team1Start, team1Sub, team2Start
 
 def grabEvents(matchID, sub):
     markup = loadMarkup(sub)
-    lineAddress = "http://www.espnfc.us/commentary?gameId=" + matchID
+    # lineAddress = "http://www.espnfc.us/commentary?gameId=" + matchID
+    lineAddress = "http://www.espn.com/soccer/commentary/_/gameId/" + matchID
+
     #    print getTimestamp() + "Grabbing events from " + lineAddress + "...",
-    lineWebsite = requests.get(lineAddress, timeout=15)
+    lineWebsite = requests.get(lineAddress, timeout=15, headers={'User-Agent': 'Custom'})
     line_html = lineWebsite.text
+    soup = BeautifulSoup(line_html, "lxml")
     try:
         if lineWebsite.status_code == 200:
             body = ""
-            split_all = line_html.split('<h1>Match Commentary</h1>')  # [0]:stuff [1]:commentary + key events
-            split = split_all[1].split('<h1>Key Events</h1>')  # [0]:commentary [1]: key events
+            # split_all = line_html.split('<h1>Match Commentary</h1>')  # [0]:stuff [1]:commentary + key events
+            # split = split_all[1].split('<h1>Key Events</h1>')  # [0]:commentary [1]: key events
+            #
+            # events = re.findall('<tr data-id=(.*?)</tr>', split[0], re.DOTALL)
+            # events = events[::-1]
 
-            events = re.findall('<tr data-id=(.*?)</tr>', split[0], re.DOTALL)
-            events = events[::-1]
+            events = soup.find("div", {"class", "Wrapper Card__Content MatchCommentary__Content"})
+
 
             # will only report goals (+ penalties, own goals), yellows, reds, subs
             supportedEvents = ['goal', 'goal---header', 'goal---free-kick', 'penalty---scored', 'own-goal',
-                               'penalty---missed', 'penalty---saved', 'yellow-card', 'red-card', 'substitution']
-            for text in events:
-                tag = re.findall('data-type="(.*?)"', text, re.DOTALL)[0]
+                               'penalty---missed', 'penalty---saved', 'yellow-card', 'red-card', 'substitution', 'offside']
+            for row in events.findAll("tr"):
+                time = row.find("div",{"class","MatchCommentary__Comment__Timestamp"}).text.strip()
+                event = row.find("div",{"class","MatchCommentary__Comment__GameDetails"}).text.strip()
+                info = "**" + time + "** "
+                try:
+                    tag = row.find("div",{"class","MatchCommentary__Comment__PlayIcon"}).find("svg")["aria-label"]
+                except TypeError:
+                    tag = ""
                 if tag.lower() in supportedEvents:
-                    time = re.findall('"time-stamp">(.*?)<', text, re.DOTALL)[0]
-                    time = time.strip()
-                    info = "**" + time + "** "
-                    event = re.findall('"game-details">(.*?)<', text, re.DOTALL)[0].strip()
+                    # time = re.findall('"time-stamp">(.*?)<', event, re.DOTALL)[0]
+                    # time = time.strip()
+                    # info = "**" + time + "** "
+                    # event = re.findall('"game-details">(.*?)<', event, re.DOTALL)[0].strip()
                     if tag.lower().startswith('goal') or tag.lower() == 'penalty---scored' or tag.lower() == 'own-goal':
                         if tag.lower().startswith('goal'):
                             info += markup[goal] + ' **' + event + '**'
@@ -783,14 +796,12 @@ def grabEvents(matchID, sub):
                         info += markup[red] + ' ' + event
                     if tag.lower() == 'substitution':
                         info += markup[subst] + ' ' + event
+                    if tag.lower() == 'offside':
+                        info += markup[offs] + ' ' + event
                     body += info + '\n\n'
                 else:
                     if "- type" in tag.lower():
                         continue
-                    time = re.findall('"time-stamp">(.*?)<', text, re.DOTALL)[0]
-                    time = time.strip()
-                    info = "**" + time + "** "
-                    event = re.findall('"game-details">(.*?)<', text, re.DOTALL)[0].strip()
                     info += event
                     body += info + '\n\n'
             #        print "complete."
@@ -1196,15 +1207,19 @@ def updateScore(matchID, t1, t2, sub):
         #
         # leftGoals = re.findall('data-event-type="goal"(.*?)</ul>', leftInfo, re.DOTALL)
         # rightGoals = re.findall('data-event-type="goal"(.*?)</ul>', rightInfo, re.DOTALL)
+        allGoals = soup.find("div",{"class", "SoccerPerformers SoccerPerformers--Comparison SoccerPerformers--gamepackage"})
+        if allGoals:
+            leftGoals = allGoals.find("div",{"class","SoccerPerformers__Competitor--left"}).find("div",{"class","SoccerPerformers__Competitor__Info"})
+            rightGoals = allGoals.find("div",{"class", "SoccerPerformers__Competitor--right"}).find("div",{"class","SoccerPerformers__Competitor__Info"})
+        else:
+            leftGoals, rightGoals = [],[]
 
-        leftGoals,rightGoals = soup.findAll("div",{"class", "SoccerPerformers__Competitor__Info"}) or [],[]
-
-        if leftGoals != []:
-            leftScorers = re.findall('<li>(.*?)</li', leftGoals[0], re.DOTALL)
+        if leftGoals is not None:
+            leftScorers = leftGoals.find("ul").text
         else:
             leftScorers = []
-        if rightGoals != []:
-            rightScorers = re.findall('<li>(.*?)</li', rightGoals[0], re.DOTALL)
+        if rightGoals is not None:
+            rightScorers = rightGoals.find("ul").text
         else:
             rightScorers = []
 
@@ -1225,7 +1240,7 @@ def updateScore(matchID, t1, t2, sub):
             text += '***' + info + '***\n\n'
 
         left = ''
-        if leftScorers != []:
+        if leftScorers is not None:
             left += "*" + t1 + " scorers: "
             for scorer in leftScorers:
                 scorer = scorer[0:scorer.index('<')].strip(' \t\n\r') + ' ' + scorer[scorer.index('('):scorer.index(
@@ -1234,13 +1249,8 @@ def updateScore(matchID, t1, t2, sub):
             left = left[0:-2] + "*"
 
         right = ''
-        if rightScorers != []:
-            right += "*" + t2 + " scorers: "
-            for scorer in rightScorers:
-                scorer = scorer[0:scorer.index('<')].strip(' \t\n\r') + ' ' + scorer[scorer.index('('):scorer.index(
-                    '/') - 1].strip(' \t\n\r')
-                right += scorer + ", "
-            right = right[0:-2] + "*"
+        if rightScorers is not None:
+            right += f"*{t2} scorers: {rightScorers}*"
 
         text += left + '\n\n' + right
 
