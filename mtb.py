@@ -77,7 +77,7 @@ strms = 10
 lines = 10
 offs = 4
 evnts = 2
-events = ['Sub', 'Goal', 'Yellow', 'Red']
+events = ['sub', 'goal', 'yellow', 'red']
 
 
 def getTimestamp():
@@ -423,7 +423,7 @@ def getLineUps(matchID):
                 player1Text = getPlayerInfo(players[0])
                 team1Start.append(player1Text)
                 # player2 = players[1].find("a",{"class", "AnchorLink SoccerLineUpPlayer__Header__Name"})
-                player2Text = '!sub ' + getPlayerInfo(players[1])
+                player2Text = getPlayerInfo(players[1])
                 # player2Text += "!sub" + player2
                 team1Start.append(player2Text)
             player = getPlayerInfo(row.find("a", {"class", "AnchorLink SoccerLineUpPlayer__Header__Name"}))
@@ -681,22 +681,22 @@ def writeLineUps(sub, body, t1, t1id, t2, t2id, team1Start, team1Sub, team2Start
     for name in team1Start:
         if any(event in name for event in events):
             temp = ''
-            if '!Sub' in name:
+            if '!sub' in name:
                 temp += ' ('
             else:
                 temp += ', '
-            if '!Sub' in name:
+            if '!sub' in name:
                 temp += markup[subst]
-                name = name.replace("!Sub", "").strip()
-            if '!Yellow' in name:
+                name = name.replace("!sub", "").strip()
+            if '!yellow' in name:
                 temp += markup[yel]
-                name = name.replace("!Yellow", "").strip()
-            if '!Red' in name:
+                name = name.replace("!yellow", "").strip()
+            if '!red' in name:
                 temp += markup[red]
-                name = name.replace("!Red", "").strip()
-            if '!Goal' in name:
+                name = name.replace("!red", "").strip()
+            if '!goal' in name:
                 temp += markup[goal]
-                name = name.replace("!Goal", " ").strip()
+                name = name.replace("!goal", " ").strip()
             temp += name
             if 'subs' in temp:
                 temp += ')'
@@ -712,22 +712,22 @@ def writeLineUps(sub, body, t1, t1id, t2, t2id, team1Start, team1Sub, team2Start
     for name in team2Start:
         if any(event in name for event in events):
             temp = ''
-            if '!Sub' in name:
+            if '!sub' in name:
                 temp += ' ('
             else:
                 temp += ', '
-            if '!Sub' in name:
+            if '!sub' in name:
                 temp += markup[subst]
-                name = name.replace("!Sub", "").strip()
-            if '!Yellow' in name:
+                name = name.replace("!sub", "").strip()
+            if '!yellow' in name:
                 temp += markup[yel]
-                name = name.replace("!Yellow", "").strip()
-            if '!Red' in name:
+                name = name.replace("!yellow", "").strip()
+            if '!red' in name:
                 temp += markup[red]
-                name = name.replace("!Red", "").strip()
-            if '!Goal' in name:
+                name = name.replace("!red", "").strip()
+            if '!goal' in name:
                 temp += markup[goal]
-                name = name.replace("!Goal", " ").strip()
+                name = name.replace("!goal", " ").strip()
             temp += name
             if 'subs' in temp:
                 temp += ')'
