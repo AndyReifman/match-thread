@@ -1237,7 +1237,7 @@ def updateScore(matchID, t1, t2, sub):
         try:
             leftScore, rightScore = list(map(lambda item: item.text, soup.findAll("div", {"class","Gamestrip__ScoreContainer flex flex-column items-center justify-center relative"})))
         except ValueError:  # Game has probably not started yet.
-            leftScore, rightScore = 0, 0
+            leftScore, rightScore = '0', '0'
         info = getExtraInfo(matchID)
         status = getStatus(matchID)
         ESPNUpdating = True

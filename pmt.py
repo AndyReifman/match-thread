@@ -549,6 +549,10 @@ def updateScore(matchID, t1, t2, sub):
         if status == 'v':
             status = "0'"
             ESPNUpdating = False
+        if status == 'FT':
+            leftScore = re.sub('[^0-9]','',leftScore)
+            rightScore = re.sub('[^0-9]','',rightScore)
+
 
         allGoals = soup.find("div",{"class", "SoccerPerformers SoccerPerformers--Comparison SoccerPerformers--gamepackage"})
         if allGoals:
@@ -592,7 +596,7 @@ def updateScore(matchID, t1, t2, sub):
 
         text += left + '\n\n' + right
 
-        return text
+        return [leftScore, rightScore], text
     except requests.exceptions.Timeout:
         return '#**--**\n\n'
 
