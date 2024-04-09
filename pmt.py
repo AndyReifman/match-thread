@@ -25,7 +25,7 @@ hdr = {
     'Connection': 'keep-alive'}
 
 messaging = True
-sub = 'eabryt'
+sub = 'gunners'
 spriteSubs = ['soccer', 'Gunners', 'fcbayern', 'soccerdev', 'mls']
 
 # markup constants

@@ -1285,11 +1285,11 @@ def updateScore(matchID, t1, t2, sub):
 
         left = ''
         if leftScorers:
-            left += f"*{t1} scorers: {leftScorers}*"
+            left += f"*{t1} scorers: {leftScorers}* "
 
         right = ''
         if rightScorers:
-            right += f"*{t2} scorers: {rightScorers}*"
+            right += f"*{t2} scorers: {rightScorers}* "
 
         text += left + '\n\n' + right
 
