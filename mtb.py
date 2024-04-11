@@ -841,6 +841,7 @@ def submitThread(sub, title):
 
 # create a new thread using provided teams    
 def createNewThread(team1, team2, reqr, sub):
+    print(f'{getTimestamp()}Match requested by /u/{reqr}')
     matchID = findMatchSite(team1, team2)
     if matchID != 'no match':
         gotinfo = False
